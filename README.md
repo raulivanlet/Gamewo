@@ -1,6 +1,6 @@
 # Gamewo
 
-GameWo is a method of solving real life tasks with game concepts such as quest and quest rewards , leaderboards.
+GameWo is a method of solving real life tasks with game concepts such as quest ,quest rewards and leaderboards.
 
 GameWo ( Game + Work ) is a method to bring the necessity of work with the pleasure of games.
 With it you can create tasks (quests) and publish them on a local network along with a reward (bounty) in tokens (ducats),
