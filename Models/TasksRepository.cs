@@ -16,7 +16,7 @@ public class TasksRepository {
 	//==Development Only CRUD API==
 #if DEBUG
 	public async Task<int> Create(Tasks tasks) {
-		return await _db.ExecuteAsync("INSERT INTO tasks (taskid, userid, title, description, attachedfile, finished, tokens) VALUES (@TaskId, @UserId, @Title, @Description, @AttachedFile , @Finished, @Tokens)", tasks);
+		return await _db.ExecuteAsync("INSERT INTO tasks (title, description, attachedfile) VALUES (@Title, @Description, @AttachedFile)", tasks);
 	}
 
 	public async Task<IEnumerable<Tasks>> GetAll() {
@@ -38,10 +38,18 @@ public class TasksRepository {
 
 
 	//Other Commands
-	public async Task<IEnumerable<Tasks>> GetNewest(int id) {
-		//@Id", new { Id = id })
-		//return await _db.QueryAsync<Tasks>("SELECT * FROM tasks ORDER BY id DESC LIMIT 10");
-		return await _db.QueryAsync<Tasks>("SELECT * FROM tasks ORDER BY @Val DESC LIMIT 10", new { val = id });
+	public async Task<IEnumerable<Tasks>> GetNewestTasks(int id) {
+		return await _db.QueryAsync<Tasks>("SELECT * FROM tasks ORDER BY taskid DESC LIMIT @Val", new { Val = id });
+	}
+
+	public async Task<IEnumerable<Tasks>> GetTaskSolutions(int id) {
+		IEnumerable<Tasks> solid = await _db.QueryAsync<Tasks>("SELECT * FROM tasksolutions WHERE taskid = @TaskId", new { TaskId = id });
+		IEnumerable<Tasks> solutions = null;
+
+		foreach (Tasks task in solid)
+			solutions.Append(await GetById(task.TaskId));
+
+		return solutions;
 	}
 
 }

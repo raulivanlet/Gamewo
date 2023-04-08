@@ -49,7 +49,7 @@ public class TasksController : ControllerBase {
 
 	[HttpGet("Newest{id}")]
 	public async Task<IEnumerable<Tasks>> GetNewest(int id) {
-		return await _repository.GetNewest(id);
+		return await _repository.GetNewestTasks(id);
 	}
 
 

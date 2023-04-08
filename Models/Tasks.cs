@@ -1,7 +1,6 @@
 ﻿namespace Gamewo.Models;
 
 public class Tasks {
-
 	public int TaskId { get; set; }
 	public int UserId { get; set; }
 	public string? Title { get; set; }
