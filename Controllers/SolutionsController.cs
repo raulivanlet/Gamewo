@@ -13,14 +13,24 @@ public class SolutionsController : ControllerBase {
 		_repository = new SolutionsRepository(configuration.GetConnectionString("Gamewo"));
 	}
 
-	//=============================
-	//==Development Only CRUD API==
-#if DEBUG
 	[HttpPost]
 	public async Task<int> Create(Solutions solutions) {
 		return await _repository.Create(solutions);
 	}
 
+	[HttpGet("GetNewestSolution")]
+	public async Task<IEnumerable<Solutions>> GetNewest() {
+		return await _repository.GetNewest(10);
+	}
+
+	[HttpGet("GetNewestSolution{id}")]
+	public async Task<IEnumerable<Solutions>> GetNewest(int id) {
+		if (id == 0)
+			id = 10;
+		return await _repository.GetNewest(id);
+	}
+
+#if DEBUG
 	[HttpGet]
 	public async Task<IEnumerable<Solutions>> GetAll() {
 		return await _repository.GetAll();
@@ -42,17 +52,4 @@ public class SolutionsController : ControllerBase {
 		return await _repository.Delete(id);
 	}
 #endif
-
-
-	//Other Commands
-
-
-	/*
-	CREATE TABLE tasksolutions (
-	taskid 			int 				UNSIGNED,
-	solutionid 		int 				UNSIGNED,
-	FOREIGN KEY (taskid) REFERENCES tasks(taskid),
-	FOREIGN KEY (solutionid) REFERENCES solution(solutionid)
-);
-	 */
 }

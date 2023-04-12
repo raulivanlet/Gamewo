@@ -1,4 +1,5 @@
 ﻿using Gamewo.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gamewo.Controllers;
@@ -33,8 +34,7 @@ public class TasksController : ControllerBase {
 	}
 
 	[HttpPut("{id}")]
-	public async Task<int> Update(int id, Tasks tasks) {
-		tasks.TaskId = id;
+	public async Task<int> Update(Tasks tasks) {
 		return await _repository.Update(tasks);
 	}
 
@@ -46,11 +46,20 @@ public class TasksController : ControllerBase {
 
 	//Other Commands
 
-
-	[HttpGet("Newest{id}")]
-	public async Task<IEnumerable<Tasks>> GetNewest(int id) {
+	[HttpGet("GetNewestTasks{id}")]
+	public async Task<IEnumerable<Tasks>> GetNewestTasks(int id) {
 		return await _repository.GetNewestTasks(id);
 	}
 
+	[HttpPut("ChooseSolution")]
+	public async Task<int> SelectSolution(Tasks tasks) {
+		return await _repository.SelectSolution(tasks);
+	}
+
+
+	[HttpGet("GetAllSolutionsForTaskId{id}")]
+	public async Task<IEnumerable<Solutions>> GetAllSolutionsForTaskId(int id) {
+		return await _repository.GetAllSolutionsForTaskId(id);
+	}
 
 }

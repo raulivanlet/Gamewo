@@ -1,4 +1,5 @@
 ﻿using Gamewo.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gamewo.Controllers;
@@ -12,8 +13,6 @@ public class UsersController : ControllerBase {
 		_repository = new UsersRepository(configuration.GetConnectionString("Gamewo"));
 	}
 
-	//=============================
-	//==Development Only CRUD API==
 #if DEBUG
 	[HttpPost]
 	public async Task<int> Create(Users users) {
@@ -42,18 +41,11 @@ public class UsersController : ControllerBase {
 	}
 #endif
 
-
-	//Other Commands
-
-	[HttpPost("AccountCreate")]
-	public async Task<string> AccountCreate(Users users) {
-		return await _repository.AccountCreate(users);
-	}
-
-
-	[HttpPost("AccountLogin")]
-	public async Task<string> AccountLogin(Users users) {
-		return await _repository.AccountLogin(users);
+	[HttpGet("GetMostActiveUsers{id}")]
+	public async Task<IEnumerable<Users>> GetMostActiveUsers(int id) {
+		if (id == 0)
+			id = 10;
+		return await _repository.GetMostActiveUsers(id);
 	}
 
 }

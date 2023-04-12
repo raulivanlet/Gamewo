@@ -1,4 +1,6 @@
-﻿using System.Data;
+﻿using System.Configuration;
+using System.Data;
+using System.Threading.Tasks;
 using Dapper;
 using MySql.Data.MySqlClient;
 
@@ -16,7 +18,15 @@ public class TasksRepository {
 	//==Development Only CRUD API==
 #if DEBUG
 	public async Task<int> Create(Tasks tasks) {
-		return await _db.ExecuteAsync("INSERT INTO tasks (title, description, attachedfile) VALUES (@Title, @Description, @AttachedFile)", tasks);
+		Users user = new Users();
+		user = await _db.QueryFirstOrDefaultAsync<Users>("SELECT * FROM users WHERE userid = @UserId", tasks);
+		if (user.Tokens >= tasks.Tokens) {
+			user.Tokens -= tasks.Tokens;
+			tasks.Finished = false;
+			await _db.ExecuteAsync("UPDATE users SET tokens = @Tokens WHERE userid = @UserId", user);
+			return await _db.ExecuteAsync("INSERT INTO tasks (userid, title, description, attachedfile, finished, tokens) VALUES (@UserId, @Title, @Description, @AttachedFile, @Finished, @Tokens)", tasks);
+		}
+		else return 0;
 	}
 
 	public async Task<IEnumerable<Tasks>> GetAll() {
@@ -32,7 +42,7 @@ public class TasksRepository {
 	}
 
 	public async Task<int> Delete(int id) {
-		return await _db.ExecuteAsync("DELETE FROM tasks WHERE taskid = @TaskId", new { Id = id });
+		return await _db.ExecuteAsync("DELETE FROM tasks WHERE taskid = @TaskId", new { TaskId = id });
 	}
 #endif
 
@@ -42,14 +52,17 @@ public class TasksRepository {
 		return await _db.QueryAsync<Tasks>("SELECT * FROM tasks ORDER BY taskid DESC LIMIT @Val", new { Val = id });
 	}
 
-	public async Task<IEnumerable<Tasks>> GetTaskSolutions(int id) {
-		IEnumerable<Tasks> solid = await _db.QueryAsync<Tasks>("SELECT * FROM tasksolutions WHERE taskid = @TaskId", new { TaskId = id });
-		IEnumerable<Tasks> solutions = null;
+	public async Task<int> SelectSolution(Tasks tasks) {
+		tasks.Finished = true;
+		Users users = new Users();
+		users.UserId = tasks.UserId;
+		users.Tokens += tasks.Tokens;
+		await _db.ExecuteAsync("UPDATE users SET tokens = @Tokens WHERE userid = @UserId", users);
+		return await _db.ExecuteAsync("UPDATE tasks SET finished = @Finished, solutionid = @SolutionId WHERE taskid = @TaskId", tasks);
+	}
 
-		foreach (Tasks task in solid)
-			solutions.Append(await GetById(task.TaskId));
-
-		return solutions;
+	public async Task<IEnumerable<Solutions>> GetAllSolutionsForTaskId(int id){
+		return await _db.QueryAsync<Solutions>("SELECT * FROM solutions WHERE taskid = @TaskId", new { TaskId = id });
 	}
 
 }

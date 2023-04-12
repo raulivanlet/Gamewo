@@ -12,13 +12,24 @@ public class SolutionsRepository {
 		_db = new MySqlConnection(connectionString);
 	}
 
-	//=============================
-	//==Development Only CRUD API==
-#if DEBUG
-	public async Task<int> Create(Solutions solutions) {
-		return await _db.ExecuteAsync("INSERT INTO solutions (description, attachedfile) VALUES (@Description, @AttachedFile)", solutions);
+	public async Task<int> Create(Solutions solution) {
+		int var1 = await _db.ExecuteAsync("INSERT INTO solutions (taskid, userid, description, attachedfile) VALUES (@TaskId, @UserId, @Description, @AttachedFile)", solution);
+		int var2 = await _db.ExecuteAsync("INSERT INTO tasksolutions (taskid, solutionid) VALUES (@TaskId, @SolutionId)", new { TaskId = solution.TaskId, SolutionId = GetLastSolutionId() });
+		if (var1 == 1 && var2 == 1)
+			return 1;
+		else return 0;
 	}
 
+	public async Task<IEnumerable<Solutions>> GetNewest(int id) {
+		return await _db.QueryAsync<Solutions>("SELECT * FROM solutions ORDER BY solutionid DESC LIMIT @Val", new { val = id });
+	}
+
+	public async Task<int> GetLastSolutionId() {
+		Solutions sol = await _db.QueryFirstOrDefaultAsync<Solutions>("SELECT last_insert_id() FROM information_schema.TABLES WHERE TABLE_SCHEMA = \"gamewo\" AND TABLE_NAME = \"solutions\"");
+		return sol.SolutionId;
+	}
+
+#if DEBUG
 	public async Task<IEnumerable<Solutions>> GetAll() {
 		return await _db.QueryAsync<Solutions>("SELECT * FROM solutions");
 	}
@@ -35,25 +46,5 @@ public class SolutionsRepository {
 		return await _db.ExecuteAsync("DELETE FROM solutions WHERE solutionid = @SolutionId", new { SolutionId = id });
 	}
 #endif
-
-
-	//Other Commands
-
-	public async Task<IEnumerable<Solutions>> GetNewest(int id) {
-		return await _db.QueryAsync<Solutions>("SELECT * FROM solutions ORDER BY solutionid DESC LIMIT @Val", new { val = id });
-	}
-
-	public async Task<string> PostSolutionToTask(Solutions solution, int taskId) {
-		_db.ExecuteAsync("INSERT INTO solutions (description, attachedfile) VALUES (@Description, @AttachedFile)", solution);
-		int solutionIndex = Convert.ToInt32(GetLastSolutionId());
-		_db.ExecuteAsync("INSERT INTO tasksolutions (taskid, solutionid) VALUES (@TaskId, @SolutionId)", new { TaskId = taskId, SolutionId = solutionIndex });
-
-		return "Solution posted";
-	}
-
-	public async Task<int> GetLastSolutionId() {
-		Solutions sol = await _db.QueryFirstOrDefaultAsync<Solutions>("SELECT last_insert_id() FROM information_schema.TABLES WHERE TABLE_SCHEMA = \"gamewo\" AND TABLE_NAME = \"solutions\"");
-		return sol.SolutionId;
-	}
 
 }

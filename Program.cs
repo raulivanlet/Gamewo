@@ -1,4 +1,9 @@
 
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+
 namespace Gamewo;
 
 public class Program {
@@ -12,6 +17,9 @@ public class Program {
 		builder.Services.AddEndpointsApiExplorer();
 		builder.Services.AddSwaggerGen();
 
+		builder.Services.AddMvc();
+		builder.Services.AddControllers();
+
 		var app = builder.Build();
 
 		// Configure the HTTP request pipeline.
@@ -22,8 +30,8 @@ public class Program {
 
 		app.UseHttpsRedirection();
 
+		app.UseAuthentication();
 		app.UseAuthorization();
-
 
 		app.MapControllers();
 
